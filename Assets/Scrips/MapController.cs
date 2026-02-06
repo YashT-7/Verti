@@ -31,48 +31,56 @@ public class MapController : MonoBehaviour
 
     private IEnumerator BufferedCleanupAndScan()
     {
-        // Draw visual boundaries
+        // Keep boundaries for visual context
         DrawVisualBoundaries(150f / divisor, 250f / divisor);
 
         // Wait for Mapbox geometry to fully spawn
         yield return new WaitForSeconds(4f);
 
-        // LOCAL SCAN: Hide center buildings and calculate ring height using colliders
-        float ringMaxHeight = CleanAndEstimateHeight();
+        // Execute single-pass logic
+        float areaMaxHeight = ProcessBuildingsWithVerti();
 
-        // Update UI with local scan results
-        if (ringMaxHeight > 0)
-            heightResultText.text = $"Ring Max Height: {ringMaxHeight:F1}m\n(300m Center Cleared)";
-        else
-            heightResultText.text = "No buildings found in Scan Zone.";
+        // Update UI
+        heightResultText.text = areaMaxHeight > 0
+            ? $"250m Area Max Height: {areaMaxHeight:F1}m\n(Verti Area Cleared)"
+            : "No buildings found in scan radius.";
     }
 
-    private float CleanAndEstimateHeight()
+    private float ProcessBuildingsWithVerti()
     {
         float highestPoint = 0f;
         int removedCount = 0;
+        float scanRadius = 250f / divisor; // Full 250m circular scan
 
-        float innerUnityRadius = 150f / divisor;
-        float outerUnityRadius = 250f / divisor;
+        // 1. Locate the "verti" object and its collider
+        GameObject vertiObj = GameObject.Find("Cube");
+        Collider vertiCollider = vertiObj != null ? vertiObj.GetComponent<Collider>() : null;
+
+        if (vertiCollider == null)
+        {
+            Debug.LogError("Verti object or Collider not found! Hiding logic skipped.");
+        }
 
         BoxCollider[] buildingColliders = GameObject.FindObjectsOfType<BoxCollider>();
 
         foreach (var col in buildingColliders)
         {
+            // Standard building filter
             if (col.gameObject.name.ToLower().Contains("building") || col.transform.parent.name.Contains("/"))
             {
-                // Circular detection logic
+                // Priority 1: Check for intersection with "verti"
+                if (vertiCollider != null && vertiCollider.bounds.Intersects(col.bounds))
+                {
+                    col.gameObject.SetActive(false); // Remove from scene
+                    removedCount++;
+                    continue; // SKIP height measurement for this building
+                }
+
+                // Priority 2: Measure height if within 250m radius
                 Vector3 closestPoint = col.ClosestPoint(Vector3.zero);
                 float distance = Vector3.Distance(Vector3.zero, closestPoint);
 
-                // 1. CLEAR: Inside 300m diameter
-                if (distance < innerUnityRadius)
-                {
-                    col.gameObject.SetActive(false);
-                    removedCount++;
-                }
-                // 2. SCAN: Between 300m and 500m diameters
-                else if (distance >= innerUnityRadius && distance <= outerUnityRadius)
+                if (distance <= scanRadius)
                 {
                     float h = col.bounds.size.y;
                     if (h > highestPoint) highestPoint = h;
@@ -80,7 +88,7 @@ public class MapController : MonoBehaviour
             }
         }
 
-        Debug.Log($"Local Scan Complete. Scale: {map.WorldRelativeScale}");
+        Debug.Log($"Verti Cleanup: {removedCount} buildings hidden. Highest active building: {highestPoint}m");
         return highestPoint;
     }
 
