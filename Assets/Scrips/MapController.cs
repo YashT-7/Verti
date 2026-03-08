@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
+
 public class MapController : MonoBehaviour
 {
     [Header("Setup References")]
@@ -16,6 +17,7 @@ public class MapController : MonoBehaviour
 
     [Header("UI Selection")]
     public TMP_Dropdown targetDropdown; // Drag your UI Dropdown here
+    public ProceduralSafetyCone coneScript;
 
     [Header("Settings")]
     public Color ringColor = Color.red;
@@ -33,18 +35,59 @@ public class MapController : MonoBehaviour
             StartCoroutine(BufferedCleanupAndScan());
         }
     }
-
     private IEnumerator BufferedCleanupAndScan()
     {
+        // 1. Draw visual boundaries at 150m and 250m scaled
         DrawVisualBoundaries(150f / divisor, 250f / divisor);
 
+        // 2. Wait for Mapbox geometry and physics to fully initialize
         yield return new WaitForSeconds(4f);
 
-        // Run the logic that now handles UI selection and activation
+        // 3. Execute the single-pass building filter and height scan
         float areaMaxHeight = ProcessBuildingsWithDynamicVerti();
 
+        // 4. Update the Procedural Cone dynamically
+        if (coneScript != null)
+        {
+            string selectedName = targetDropdown.options[targetDropdown.value].text;
+            GameObject targetObj = FindHiddenObjectByName(selectedName);
+
+            if (targetObj != null)
+            {
+                // Find the child object named FATO1
+                Transform fatoTransform = targetObj.transform.Find("FATO1");
+
+                float fatoRadius = 0.5f; // Default radius
+                Vector3 fatoPos = targetObj.transform.position; // Default to parent center
+
+                if (fatoTransform != null)
+                {
+                    // Get the exact world position of the cylinder
+                    fatoPos = fatoTransform.position;
+
+                    // Calculate the Y offset to sit on top of the cylinder
+                    // Standard Unity cylinders are 2 units tall, so scale.y is the total height.
+                    // We move the position up by half that height.
+                    float fatoHeightOffset = fatoTransform.lossyScale.y;
+                    fatoPos.y += fatoHeightOffset;
+
+                    // Calculate radius based on the cylinder's X scale
+                    // Note: lossyScale ensures we get the correct scale regardless of parent scaling
+                    fatoRadius = fatoTransform.lossyScale.x / 2f;
+                }
+                else
+                {
+                    Debug.LogWarning($"Child 'FATO1' not found in {selectedName}. Using parent center.");
+                }
+
+                // Trigger the cone with dynamic height, position, and radius
+                coneScript.UpdateConeHeight(areaMaxHeight, fatoPos, fatoRadius);
+            }
+        }
+
+        // 5. Update UI with the results
         heightResultText.text = areaMaxHeight > 0
-            ? $"250m Area Max Height: {areaMaxHeight:F1}m\n(Selection: {targetDropdown.options[targetDropdown.value].text})"
+            ? $"250m Area Max Height: {areaMaxHeight:F1}m\n(Location: {targetDropdown.options[targetDropdown.value].text})"
             : "No buildings found in scan radius.";
     }
 
