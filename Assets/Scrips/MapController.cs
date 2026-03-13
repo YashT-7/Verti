@@ -11,6 +11,7 @@ public class MapController : MonoBehaviour
 {
     [Header("Setup References")]
     public AbstractMap map;
+    public VertiportDirector director;
     public InputField latInput;
     public InputField lonInput;
     public Text heightResultText;
@@ -45,6 +46,24 @@ public class MapController : MonoBehaviour
 
         // 3. Execute the single-pass building filter and height scan
         float areaMaxHeight = ProcessBuildingsWithDynamicVerti();
+
+        if (director != null) 
+        {
+            // Note: 'result' is now an object containing .heading, .clearDistance, and .isAllClear
+            director.RunDirectionScan(divisor, (result) => {
+                
+                Debug.Log("Recommended Heading: " + result.heading);
+                
+                if (result.isAllClear) {
+                    heightResultText.text += $"\nPath Clear! Recommended: {result.heading}°";
+                } else {
+                    heightResultText.text += $"\nRestricted! Best Path: {result.heading}°";
+                }
+
+                // Apply Rotation
+                // myVertiport.transform.rotation = Quaternion.Euler(0, result.heading, 0);
+            });
+        }
 
         // 4. Update the Procedural Cone dynamically
         if (coneScript != null)
