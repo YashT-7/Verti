@@ -216,6 +216,8 @@ GameObject:
   m_Component:
   - component: {fileID: 199429931}
   - component: {fileID: 199429930}
+  - component: {fileID: 199429933}
+  - component: {fileID: 199429932}
   m_Layer: 0
   m_Name: VertiportDirector
   m_TagString: Untagged
@@ -235,17 +237,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 09b5271399cd648d6b5837b69a9328bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::VertiportDirector
-  showDebugGizmos: 1
-  dValue: 12
-  slopeRatio: 0.125
-  scanRangeRealWorld: 1000
-  obstacleLayer:
-    serializedVersion: 2
-    m_Bits: 4294967295
+  visualOrigin: {fileID: 84542682}
   visualArrowLengthMultiplier: 4
   safeColor: {r: 0, g: 1, b: 0, a: 1}
   midColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   dangerColor: {r: 1, g: 0, b: 0, a: 1}
+  optimalColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!4 &199429931
 Transform:
   m_ObjectHideFlags: 0
@@ -255,12 +252,44 @@ Transform:
   m_GameObject: {fileID: 199429929}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.08842, y: 57.96846, z: -3.21361}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &199429932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199429929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f74261d790714477c9738304add8c46b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  maxAcceptableDecibels: 65
+--- !u!114 &199429933
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199429929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18c6dc9be65af44a1bb55a1052412e63, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  dValue: 12
+  slopeRatio: 0.125
+  scanRangeRealWorld: 1000
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  scanStepSize: 5
 --- !u!114 &290108830 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 419363876156157169, guid: bb39865ae4f9d054896c676804e9433b, type: 3}

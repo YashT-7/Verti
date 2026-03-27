@@ -54,7 +54,7 @@ public class MapController : MonoBehaviour
                 
                 Debug.Log("Recommended Heading: " + result.heading);
                 
-                if (result.isAllClear) {
+                if (result.isSafeAirspace) {
                     heightResultText.text += $"\nPath Clear! Recommended: {result.heading}°";
                 } else {
                     heightResultText.text += $"\nRestricted! Best Path: {result.heading}°";
