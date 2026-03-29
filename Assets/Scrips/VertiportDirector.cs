@@ -74,36 +74,44 @@ public class VertiportDirector : MonoBehaviour
             isPerfectlySafe = false;
         }
 
-        // 3. PHASE 3: NOISE SCORING 
-        AirspaceScanner.AirspaceData bestPath = validCandidates[0];
-        float bestNoiseScore = float.MaxValue; 
-
-        foreach (var candidate in validCandidates)
+    // 3. PHASE 3: NOISE SCORING & CIRCULAR MEAN CENTERING
+    float bestNoiseScore = float.MaxValue;
+    
+    // Step A: Find the absolute best noise score among safe paths
+    foreach (var candidate in validCandidates)
+    {
+        float currentNoiseScore = noiseScanner.EvaluateNoiseImpact(candidate.angle, scanCenter);
+        if (currentNoiseScore < bestNoiseScore)
         {
-            // Evaluate noise from the FATO1 position
-            float currentNoiseScore = noiseScanner.EvaluateNoiseImpact(candidate.angle, scanCenter);
-
-            if (currentNoiseScore < bestNoiseScore)
-            {
-                bestNoiseScore = currentNoiseScore;
-                bestPath = candidate;
-            }
+            bestNoiseScore = currentNoiseScore;
         }
+    }
 
-        // 4. PACKAGE RESULTS
-        FinalRecommendation finalResult = new FinalRecommendation {
-            heading = bestPath.angle,
-            clearDistance = bestPath.clearDistance,
-            isSafeAirspace = isPerfectlySafe,
-            noiseScore = bestNoiseScore
-        };
+    // Step B: Collect ALL safe angles that are within an acceptable margin of the best score
+    // (e.g., anything within 1.0 of the absolute best score is considered "Optimal")
+    float noiseTolerance = 1.0f; 
+    List<float> optimalAngles = new List<float>();
 
-        if (isPerfectlySafe) {
-            Debug.Log($"<color=cyan>Optimal Path Found! Heading {finalResult.heading}°. (Airspace: Clear | Noise Score: {finalResult.noiseScore})</color>");
-        } else {
-            Debug.Log($"<color=yellow>Warning: No fully clear paths. Best compromise: {finalResult.heading}°. (Distance: {finalResult.clearDistance}m | Noise Score: {finalResult.noiseScore})</color>");
+    foreach (var candidate in validCandidates)
+    {
+        float score = noiseScanner.EvaluateNoiseImpact(candidate.angle, scanCenter);
+        if (score <= bestNoiseScore + noiseTolerance)
+        {
+            optimalAngles.Add(candidate.angle);
         }
+    }
 
+    // Step C: Cluster and apply Circular Mean
+    // This prevents averaging North and South and accidentally flying East.
+    float finalRecommendedHeading = GetMeanOfLargestSector(optimalAngles);
+
+    // 4. PACKAGE RESULTS
+    FinalRecommendation finalResult = new FinalRecommendation {
+        heading = finalRecommendedHeading,
+        clearDistance = validCandidates[0].clearDistance, // Using distance of the safe group
+        isSafeAirspace = isPerfectlySafe,
+        noiseScore = bestNoiseScore
+    };
         // 5. VISUALIZE (Passing the originTransform so arrows draw from FATO1)
         DrawRadarFan(airspaceData, divisor, originTransform);
         DrawMainArrow(finalResult.heading, divisor, finalResult.isSafeAirspace, originTransform);
@@ -177,5 +185,73 @@ public class VertiportDirector : MonoBehaviour
         
         lr.SetPosition(0, startPos);
         lr.SetPosition(1, startPos + (dir * constrainedLength)); 
+    }
+
+// --- CIRCULAR MEAN HELPERS ---
+    
+    private float GetMeanOfLargestSector(List<float> optimalAngles)
+    {
+        if (optimalAngles.Count == 1) return optimalAngles[0];
+
+        // 1. Sort the angles
+        optimalAngles.Sort();
+
+        List<List<float>> clusters = new List<List<float>>();
+        List<float> currentCluster = new List<float>();
+
+        // 2. Group contiguous angles (assuming 5-degree step size from AirspaceScanner)
+        int stepSize = airspaceScanner.scanStepSize; 
+
+        for (int i = 0; i < optimalAngles.Count; i++)
+        {
+            if (currentCluster.Count == 0 || Mathf.Approximately(optimalAngles[i], currentCluster.Last() + stepSize))
+            {
+                currentCluster.Add(optimalAngles[i]);
+            }
+            else
+            {
+                clusters.Add(new List<float>(currentCluster));
+                currentCluster.Clear();
+                currentCluster.Add(optimalAngles[i]);
+            }
+        }
+        if (currentCluster.Count > 0) clusters.Add(currentCluster);
+
+        // 3. Wrap-around Check (Connect 355° to 0°)
+        if (clusters.Count > 1)
+        {
+            var first = clusters.First();
+            var last = clusters.Last();
+            if (Mathf.Approximately(first.First(), 0f) && Mathf.Approximately(last.Last(), 360f - stepSize))
+            {
+                last.AddRange(first);
+                clusters.RemoveAt(0);
+            }
+        }
+
+        // 4. Pick the widest contiguous sector of optimal angles
+        var largestCluster = clusters.OrderByDescending(c => c.Count).First();
+
+        // 5. Calculate true Circular Mean of that specific sector
+        return CalculateCircularMean(largestCluster);
+    }
+
+    private float CalculateCircularMean(List<float> angles)
+    {
+        float sumSin = 0f;
+        float sumCos = 0f;
+
+        foreach (float angle in angles)
+        {
+            float rad = angle * Mathf.Deg2Rad;
+            sumSin += Mathf.Sin(rad);
+            sumCos += Mathf.Cos(rad);
+        }
+
+        float meanRad = Mathf.Atan2(sumSin / angles.Count, sumCos / angles.Count);
+        float meanDeg = meanRad * Mathf.Rad2Deg;
+
+        if (meanDeg < 0) meanDeg += 360f; 
+        return meanDeg;
     }
 }
