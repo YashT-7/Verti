@@ -31,6 +31,7 @@ public class VertiportDirector : MonoBehaviour
         public float clearDistance;
         public bool isSafeAirspace;
         public float noiseScore;
+        public List<float> blockedHeadings;
     }
 
     void Awake()
@@ -100,7 +101,10 @@ public class VertiportDirector : MonoBehaviour
             optimalAngles.Add(candidate.angle);
         }
     }
-
+    List<float> blockedMask = airspaceData
+        .Where(data => !data.isClear)
+        .Select(data => data.angle)
+        .ToList();
     // Step C: Cluster and apply Circular Mean
     // This prevents averaging North and South and accidentally flying East.
     float finalRecommendedHeading = GetMeanOfLargestSector(optimalAngles);
@@ -110,7 +114,8 @@ public class VertiportDirector : MonoBehaviour
         heading = finalRecommendedHeading,
         clearDistance = validCandidates[0].clearDistance, // Using distance of the safe group
         isSafeAirspace = isPerfectlySafe,
-        noiseScore = bestNoiseScore
+        noiseScore = bestNoiseScore,
+        blockedHeadings = blockedMask
     };
         // 5. VISUALIZE (Passing the originTransform so arrows draw from FATO1)
         DrawRadarFan(airspaceData, divisor, originTransform);
