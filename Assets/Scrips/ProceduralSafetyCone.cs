@@ -5,7 +5,8 @@ using System.Collections.Generic;
 public class ProceduralSafetyCone : MonoBehaviour
 {
     [Header("Dynamic Parameters")]
-    public float topDiameter = 11.63f;     // The only manual width you set
+    public float h1_CylinderHeight = 10f;  // Base vertical section
+    public float topDiameter = 11.63f;     // Target width
     public int segments = 60;
 
     [Header("Outer Extension (Brim)")]
@@ -13,8 +14,8 @@ public class ProceduralSafetyCone : MonoBehaviour
     public float extensionAngle = 5f;
 
     [Header("Read-Only Data")]
-    public float autoBottomDiameter;    // Detected from FATO1
-    public float calculatedSlopeAngle;  // Resulting slope
+    public float autoBottomDiameter;
+    public float calculatedSlopeAngle;
 
     private Mesh mesh;
     private MeshFilter meshFilter;
@@ -27,99 +28,119 @@ public class ProceduralSafetyCone : MonoBehaviour
         mesh = new Mesh();
         meshFilter.mesh = mesh;
 
-        if (meshRenderer.sharedMaterials.Length < 2)
+        // Slot 0: Cylinder, Slot 1: Cone, Slot 2: Brim
+        if (meshRenderer.sharedMaterials.Length < 3)
         {
-            meshRenderer.sharedMaterials = new Material[2];
+            meshRenderer.sharedMaterials = new Material[3];
         }
     }
 
-    // MapController calls this and passes the radius found from FATO1
-    public void UpdateConeHeight(float maxHeight, Vector3 centerPos, float bottomRadius)
+    public void UpdateConeHeight(float totalHeight, Vector3 centerPos, float bottomRadius, List<float> blockedAngles)
     {
-        if (maxHeight <= 0)
+        if (totalHeight <= 0)
         {
             mesh.Clear();
             return;
         }
 
         transform.position = centerPos;
-
-        // AUTO-ASSIGN: Use the actual FATO1 geometry
         this.autoBottomDiameter = bottomRadius * 2f;
 
-        GenerateMultiMaterialCone(maxHeight);
+        // Pass the blocked list to the generator
+        GenerateMultiMaterialCone(totalHeight, blockedAngles);
     }
 
-    void GenerateMultiMaterialCone(float height)
+    void GenerateMultiMaterialCone(float totalHeight, List<float> blockedAngles)
     {
         mesh.Clear();
-        mesh.subMeshCount = 2;
+        mesh.subMeshCount = 3;
 
         float r1 = autoBottomDiameter / 2f;
-        float r2 = topDiameter / 2f;
+        float r2 = r1;
+        float r3 = topDiameter / 2f;
+        float r4 = extensionRadius;
 
-        // Calculate resulting slope angle: θ = arctan((r2 - r1) / height)
-        calculatedSlopeAngle = Mathf.Atan((r2 - r1) / height) * Mathf.Rad2Deg;
+        float h1 = h1_CylinderHeight;
+        float h2 = totalHeight;
+        float h3 = h2 + ((r4 - r3) * Mathf.Tan(extensionAngle * Mathf.Deg2Rad));
 
-        float horizontalDist = extensionRadius - r2;
-        float r3Height = height + (horizontalDist * Mathf.Tan(extensionAngle * Mathf.Deg2Rad));
+        int s = segments + 1;
+        Vector3[] vertices = new Vector3[s * 8];
+        Vector2[] uvs = new Vector2[s * 8];
 
-        int vertexCount = (segments + 1) * 6;
-        Vector3[] vertices = new Vector3[vertexCount];
-        Vector2[] uvs = new Vector2[vertexCount];
-
-        List<int> coneTriangles = new List<int>();
-        List<int> brimTriangles = new List<int>();
+        List<int> cylinderTris = new List<int>();
+        List<int> coneTris = new List<int>();
+        List<int> brimTris = new List<int>();
 
         for (int i = 0; i <= segments; i++)
         {
-            float angle = (float)i / segments * Mathf.PI * 2f;
-            float x = Mathf.Cos(angle);
-            float z = Mathf.Sin(angle);
+            // 1. Calculate the angle (0 to 360)
+            float angle = (float)i / segments * 360f;
+
+            // 2. Adjust for Unity's Coordinate System:
+            // We swap Sin/Cos and use degrees to radians.
+            // This makes 0 degrees point at Forward (Z+) and rotate Clockwise.
+            float rad = angle * Mathf.Deg2Rad;
+            float x = Mathf.Sin(rad); // Swapped Cos for Sin
+            float z = Mathf.Cos(rad); // Swapped Sin for Cos
             float u = (float)i / segments;
 
-            // Define points using auto-detected bottom and manual top
+            // Standard Vertex setup (stays the same)
             vertices[i] = new Vector3(x * r1, 0, z * r1);
-            vertices[i + (segments + 1)] = new Vector3(x * r2, height, z * r2);
-            vertices[i + (segments + 1) * 2] = new Vector3(x * extensionRadius, r3Height, z * extensionRadius);
+            vertices[i + s] = new Vector3(x * r2, h1, z * r2);
+            vertices[i + s * 2] = new Vector3(x * r3, h2, z * r3);
+            vertices[i + s * 3] = new Vector3(x * r4, h3, z * r4);
 
             // Double-sided vertices
-            vertices[i + (segments + 1) * 3] = vertices[i];
-            vertices[i + (segments + 1) * 4] = vertices[i + (segments + 1)];
-            vertices[i + (segments + 1) * 5] = vertices[i + (segments + 1) * 2];
+            for (int j = 0; j < 4; j++) vertices[i + s * (4 + j)] = vertices[i + s * j];
 
-            uvs[i] = new Vector2(u, 0);
-            uvs[i + (segments + 1)] = new Vector2(u, 0.5f);
-            uvs[i + (segments + 1) * 2] = new Vector2(u, 1);
+            uvs[i] = new Vector2(u, 0); uvs[i + s] = new Vector2(u, 0.33f);
+            uvs[i + s * 2] = new Vector2(u, 0.66f); uvs[i + s * 3] = new Vector2(u, 1f);
 
             if (i < segments)
             {
-                int b = i;
-                int m = i + segments + 1;
-                int o = i + (segments + 1) * 2;
-                int bi = b + (segments + 1) * 3;
-                int mi = m + (segments + 1) * 3;
-                int oi = o + (segments + 1) * 3;
+                // --- THE CUT LOGIC ---
+                // Check if the current angle is blocked
+                // We check if any angle in the blocked list is within the current segment step
+                bool isBlocked = blockedAngles.Exists(a => Mathf.Abs(a - angle) < (360f / segments) / 2f);
 
-                // Submesh 0 (Cone)
-                coneTriangles.Add(b); coneTriangles.Add(m); coneTriangles.Add(b + 1);
-                coneTriangles.Add(m); coneTriangles.Add(m + 1); coneTriangles.Add(b + 1);
-                coneTriangles.Add(bi); coneTriangles.Add(bi + 1); coneTriangles.Add(mi);
-                coneTriangles.Add(mi); coneTriangles.Add(bi + 1); coneTriangles.Add(mi + 1);
+                if (!isBlocked)
+                {
+                    int rA = i, rB = i + s, rC = i + s * 2, rD = i + s * 3;
+                    int iA = rA + s * 4, iB = rB + s * 4, iC = rC + s * 4, iD = rD + s * 4;
 
-                // Submesh 1 (Brim)
-                brimTriangles.Add(m); brimTriangles.Add(o); brimTriangles.Add(m + 1);
-                brimTriangles.Add(o); brimTriangles.Add(o + 1); brimTriangles.Add(m + 1);
-                brimTriangles.Add(mi); brimTriangles.Add(mi + 1); brimTriangles.Add(oi);
-                brimTriangles.Add(oi); brimTriangles.Add(mi + 1); brimTriangles.Add(oi + 1);
+                    AddQuad(cylinderTris, rA, rB, rA + 1, rB + 1, false);
+                    AddQuad(cylinderTris, iA, iB, iA + 1, iB + 1, true);
+
+                    AddQuad(coneTris, rB, rC, rB + 1, rC + 1, false);
+                    AddQuad(coneTris, iB, iC, iB + 1, iC + 1, true);
+
+                    AddQuad(brimTris, rC, rD, rC + 1, rD + 1, false);
+                    AddQuad(brimTris, iC, iD, iC + 1, iD + 1, true);
+                }
             }
         }
 
         mesh.vertices = vertices;
         mesh.uv = uvs;
-        mesh.SetTriangles(coneTriangles, 0);
-        mesh.SetTriangles(brimTriangles, 1);
+        mesh.SetTriangles(cylinderTris, 0);
+        mesh.SetTriangles(coneTris, 1);
+        mesh.SetTriangles(brimTris, 2);
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
+    }
+
+    void AddQuad(List<int> tris, int bL, int tL, int bR, int tR, bool flip)
+    {
+        if (!flip)
+        {
+            tris.Add(bL); tris.Add(tL); tris.Add(bR);
+            tris.Add(tL); tris.Add(tR); tris.Add(bR);
+        }
+        else
+        {
+            tris.Add(bL); tris.Add(bR); tris.Add(tL);
+            tris.Add(tL); tris.Add(bR); tris.Add(tR);
+        }
     }
 }

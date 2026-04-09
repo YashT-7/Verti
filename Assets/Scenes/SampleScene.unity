@@ -2408,6 +2408,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c83e340390ac54c9428e4329c5a6d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralSafetyCone
+  h1_CylinderHeight: 10
   topDiameter: 11.63
   segments: 50
   extensionRadius: 100
@@ -2456,6 +2457,7 @@ MeshRenderer:
   m_Materials:
   - {fileID: 2100000, guid: 80bd19d68c4ef4a659db43cfb6b09b91, type: 2}
   - {fileID: 2100000, guid: 497423d004c7f44f690e8f82bed81904, type: 2}
+  - {fileID: 2100000, guid: 65fb5c4ce7e4e4e1bbd063bbb561cde7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
