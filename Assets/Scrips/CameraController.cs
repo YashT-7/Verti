@@ -25,7 +25,7 @@ public class CameraController : MonoBehaviour
         // 2. SCROLL ZOOM (Optional addition for mouse wheel)
         float scrollValue = mouse.scroll.ReadValue().y;
         if (scrollValue != 0)
-            transform.position += transform.forward * (scrollValue * 0.1f);
+            transform.position += transform.forward * (scrollValue * 2.0f);
 
         // 3. PAN OR ORBIT (Right Click Logic)
         if (mouse.rightButton.isPressed)
