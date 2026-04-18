@@ -5,6 +5,7 @@ using Mapbox.Utils;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using UnityEngine.SceneManagement; // Required for restarting
 
 
 public class MapController : MonoBehaviour
@@ -16,6 +17,16 @@ public class MapController : MonoBehaviour
     public InputField lonInput;
     public Text heightResultText;
 
+    [Header("UI Containers")]
+    public GameObject controlsContainer; // Drag the parent of your UI elements here
+
+    [Header("Restart UI")]
+    public GameObject restartButtonObj; // Drag your new Restart Button here
+
+    [Header("Instruction UI")]
+    public GameObject instructionPanel;
+    public GameObject infoButton;
+
     [Header("UI Selection")]
     public TMP_Dropdown targetDropdown; // Drag your UI Dropdown here
     public ProceduralSafetyCone coneScript;
@@ -25,10 +36,28 @@ public class MapController : MonoBehaviour
     private float divisor = 2.58f;
     private GameObject visualContainer;
 
+    void Start()
+    {
+        // 1. Show instructions immediately when the tool starts
+        ShowInstructions(true);
+    }
+
+    public void ShowInstructions(bool show)
+    {
+        if (instructionPanel != null) instructionPanel.SetActive(show);
+
+        // 2. If the panel is open, hide the small 'i' button. 
+        // If the panel is closed, show the 'i' button in the corner.
+        if (infoButton != null) infoButton.SetActive(!show);
+    }
+
     public void OnClickLoadMap()
     {
         if (double.TryParse(latInput.text, out double lat) && double.TryParse(lonInput.text, out double lon))
         {
+            // 1. Disable the UI immediately to prevent double-clicks
+            SetUIState(false);
+
             map.SetCenterLatitudeLongitude(new Vector2d(lat, lon));
             map.UpdateMap();
 
@@ -36,23 +65,44 @@ public class MapController : MonoBehaviour
             StartCoroutine(BufferedCleanupAndScan());
         }
     }
+
+    private void SetUIState(bool state)
+    {
+        if (controlsContainer != null)
+        {
+            controlsContainer.SetActive(state); // true = Visible, false = Hidden
+        }
+    }
+
     private IEnumerator BufferedCleanupAndScan()
     {
+        // 1. Hide the entire UI block immediately
+        SetUIState(false);
+
+        // Ensure the restart button is hidden while processing
+        if (restartButtonObj != null) restartButtonObj.SetActive(false);
+
         DrawVisualBoundaries(150f / divisor, 250f / divisor);
+
+        // 2. Wait for Mapbox geometry and physics to fully initialize
         yield return new WaitForSeconds(4f);
 
         float areaMaxHeight = ProcessBuildingsWithDynamicVerti();
 
-        // NEW LOGIC: h2 must be at least 15m
+        // 3. Apply safety logic: h2 must be at least 15m
         float finalConeHeight = Mathf.Max(15f, areaMaxHeight);
 
         if (director != null)
         {
             director.RunDirectionScan(divisor, (result) => {
 
-                // UI Update reflecting the chosen height
+                // UI Update reflecting the chosen height and scan findings
                 string heightStatus = areaMaxHeight > 15f ? "Building Restricted" : "Default Minimum";
-                heightResultText.text += $"\nCone Height: {finalConeHeight}m ({heightStatus})";
+                heightResultText.text = $"Area Scan Complete.\nMax Building: {areaMaxHeight:F1}m\nCone Height: {finalConeHeight}m ({heightStatus})";
+
+                heightResultText.text += result.isSafeAirspace
+                    ? $"\nPath Clear! Recommended: {result.heading:F1}°"
+                    : $"\nRestricted! Best Path: {result.heading:F1}°";
 
                 if (coneScript != null)
                 {
@@ -68,19 +118,31 @@ public class MapController : MonoBehaviour
                         if (fatoTransform != null)
                         {
                             fatoPos = fatoTransform.position;
-                            // Start the mesh at the top of the physical cylinder
                             fatoPos.y += fatoTransform.lossyScale.y;
                             fatoRadius = fatoTransform.lossyScale.x / 2f;
                         }
 
-                        // Pass the calculated finalConeHeight instead of raw areaMaxHeight
                         coneScript.UpdateConeHeight(finalConeHeight, fatoPos, fatoRadius, result.blockedHeadings);
                     }
                 }
+
+                // 4. THE KEY CHANGE: Only show the restart button. 
+                // The main UI (SetUIState) stays FALSE so the user can't click Generate again.
+                if (restartButtonObj != null) restartButtonObj.SetActive(true);
             });
         }
+        else
+        {
+            // If director fails, we show everything so the user can try again
+            SetUIState(true);
+        }
+    }
 
-        heightResultText.text = $"Area Scan Complete.\nMax Building: {areaMaxHeight:F1}m";
+    // This method will be linked to your Restart Button
+    public void OnClickRestart()
+    {
+        // Reloads the currently active scene from scratch
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private float ProcessBuildingsWithDynamicVerti()
