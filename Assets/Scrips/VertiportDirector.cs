@@ -18,7 +18,10 @@ public class VertiportDirector : MonoBehaviour
     public TMP_Dropdown targetDropdown; // Added to match MapController selection
 
     [Header("Visualization")]
-    public float visualArrowLengthMultiplier = 4f;
+    [Tooltip("Drag your 3D Arrow Prefab here.")]
+    public GameObject hoverArrowPrefab; 
+    [Tooltip("How high above the vertiport should the arrow hover?")]
+    public float hoverHeightRealWorld = 20f; 
     public Color safeColor = Color.green;
     public Color midColor = Color.yellow;
     public Color dangerColor = Color.red;
@@ -197,37 +200,49 @@ public class VertiportDirector : MonoBehaviour
         }
     }
 
-    private void DrawMainArrow(float angle, float divisor, bool isIdeal, Transform origin)
+    private void DrawMainArrow(float angle, float divisor, bool isIdeal, Transform origin) 
     {
+        // 1. Clean up the old arrow if it exists
         if (mainArrowContainer != null) Destroy(mainArrowContainer);
-        mainArrowContainer = new GameObject("Visual_MainArrow");
-        mainArrowContainer.transform.SetParent(transform, false);
 
-        LineRenderer lr = mainArrowContainer.AddComponent<LineRenderer>();
+        // 2. Fallback check: If you forgot to assign a prefab, don't crash.
+        if (hoverArrowPrefab == null)
+        {
+            Debug.LogError("No Arrow Prefab assigned in VertiportDirector!");
+            return;
+        }
 
-        lr.useWorldSpace = true;
-        lr.positionCount = 2;
-        lr.startWidth = 3f / divisor * 2f;
-        lr.endWidth = 0.1f / divisor;
-        lr.material = new Material(Shader.Find("Sprites/Default"));
+        // 3. Spawn the 3D Arrow
+        mainArrowContainer = Instantiate(hoverArrowPrefab);
+        mainArrowContainer.name = "Visual_HoverArrow";
+        mainArrowContainer.transform.SetParent(transform, true);
 
+        // 4. Position it: Hovering straight up from the FATO
+        Vector3 hoverPos = origin.position + (Vector3.up * (hoverHeightRealWorld / divisor));
+        mainArrowContainer.transform.position = hoverPos;
+
+        // 5. Rotate it: Flat with the ground, pointing at the correct heading
+        mainArrowContainer.transform.rotation = Quaternion.Euler(0, angle, 0);
+
+        // 6. Scale it: Adjust size based on your map divisor
+        float scaleVisual = 10f / divisor; // Adjust '10f' to make the base arrow bigger/smaller
+        mainArrowContainer.transform.localScale = new Vector3(scaleVisual, scaleVisual, scaleVisual);
+
+        // 7. Color it: Apply our safe/warning colors to the 3D model's materials
         Color finalColor = isIdeal ? optimalColor : midColor;
-        lr.startColor = finalColor;
-        lr.endColor = finalColor;
-
-        // CALCULATE TOP SURFACE OFFSET
-        float topSurfaceOffset = origin.lossyScale.y / 2f;
-
-        // Adjust startPos to the TOP surface
-        Vector3 startPos = origin.position + (Vector3.up * topSurfaceOffset);
-
-        Quaternion rot = Quaternion.Euler(0, angle, 0);
-        Vector3 dir = (rot * Vector3.forward + (Vector3.up * airspaceScanner.slopeRatio)).normalized;
-        float constrainedLength = (airspaceScanner.dValue / divisor) * visualArrowLengthMultiplier;
-
-        lr.SetPosition(0, startPos);
-        lr.SetPosition(1, startPos + (dir * constrainedLength));
+        
+        // This loops through the arrow model and colors all its parts
+        Renderer[] renderers = mainArrowContainer.GetComponentsInChildren<Renderer>();
+        foreach (Renderer r in renderers)
+        {
+            // Note: Your prefab needs a material that uses the Standard shader with a settable _Color
+            if (r.material.HasProperty("_Color")) 
+            {
+                r.material.color = finalColor;
+            }
+        }
     }
+
 
     // --- CIRCULAR MEAN HELPERS ---
     private float GetMeanOfLargestSector(List<float> optimalAngles)
