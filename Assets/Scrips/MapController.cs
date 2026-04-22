@@ -53,16 +53,31 @@ public class MapController : MonoBehaviour
 
     public void OnClickLoadMap()
     {
-        if (double.TryParse(latInput.text, out double lat) && double.TryParse(lonInput.text, out double lon))
+        // Use System.Globalization to ensure dots are always treated as decimals
+        if (double.TryParse(latInput.text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lat) &&
+            double.TryParse(lonInput.text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lon))
         {
-            // 1. Disable the UI immediately to prevent double-clicks
             SetUIState(false);
 
-            map.SetCenterLatitudeLongitude(new Vector2d(lat, lon));
+            // 1. Create the coordinate object
+            Vector2d center = new Vector2d(lat, lon);
+
+            // 2. Set the center via the official method
+            map.SetCenterLatitudeLongitude(center);
+
+            // 3. FORCE the string property (this fixes the "Wrong number of arguments" bug)
+            // We use InvariantCulture to ensure it's "12.34, 56.78" and not "12,34, 56,78"
+            map.Options.locationOptions.latitudeLongitude = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}, {1}", lat, lon);
+
+            // 4. Trigger the visual update
             map.UpdateMap();
 
             StopAllCoroutines();
             StartCoroutine(BufferedCleanupAndScan());
+        }
+        else
+        {
+            Debug.LogError("Input Parse Failed! Check if you used a comma instead of a dot.");
         }
     }
 
@@ -96,9 +111,14 @@ public class MapController : MonoBehaviour
         {
             director.RunDirectionScan(divisor, (result) => {
 
-                // UI Update reflecting the chosen height and scan findings
+                // UI Update reflecting chosen height and scan findings
                 string heightStatus = areaMaxHeight > 15f ? "Building Restricted" : "Default Minimum";
-                heightResultText.text = $"Area Scan Complete.\nMax Building: {areaMaxHeight:F1}m\nCone Height: {finalConeHeight}m ({heightStatus})";
+
+                // ADDED: Latitude and Longitude from the input fields
+                heightResultText.text = $"Area Scan Complete.\n" +
+                                      $"Location: {latInput.text}, {lonInput.text}\n" + // <--- Added this line
+                                      $"Max Building: {areaMaxHeight:F1}m\n" +
+                                      $"Cone Height: {finalConeHeight:F1}m ({heightStatus})";
 
                 heightResultText.text += result.isSafeAirspace
                     ? $"\nPath Clear! Recommended: {result.heading:F1}°"
