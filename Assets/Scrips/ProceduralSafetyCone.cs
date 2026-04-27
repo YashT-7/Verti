@@ -11,7 +11,7 @@ public class ProceduralSafetyCone : MonoBehaviour
 
     [Header("Outer Extension (Brim)")]
     public float extensionRadius = 100f;
-    public float extensionAngle = 5f;
+    public float extensionAngle = 12.5f;
 
     [Header("Read-Only Data")]
     public float autoBottomDiameter;
@@ -57,7 +57,8 @@ public class ProceduralSafetyCone : MonoBehaviour
 
         float r1 = autoBottomDiameter / 2f;
         float r2 = r1;
-        float r3 = topDiameter / 2f;
+        //float r3 = topDiameter / 2f;
+        float r3 = (autoBottomDiameter * 5f) / 2f;
         float r4 = extensionRadius;
 
         float h1 = h1_CylinderHeight;

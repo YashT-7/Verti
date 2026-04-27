@@ -38,9 +38,9 @@ Material:
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
-  - MOTIONVECTORS
-  - DepthOnly
   - SHADOWCASTER
+  - DepthOnly
+  - MOTIONVECTORS
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -118,7 +118,7 @@ Material:
     - _ClearCoatMask: 0
     - _ClearCoatSmoothness: 0
     - _Cull: 2
-    - _Cutoff: 0.5
+    - _Cutoff: 0.514
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 10

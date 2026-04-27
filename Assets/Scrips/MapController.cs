@@ -104,8 +104,8 @@ public class MapController : MonoBehaviour
 
         float areaMaxHeight = ProcessBuildingsWithDynamicVerti();
 
-        // 3. Apply safety logic: h2 must be at least 15m
-        float finalConeHeight = Mathf.Max(15f, areaMaxHeight);
+        // 3. Apply safety logic: h2 must be at least 20m
+        float finalConeHeight = Mathf.Max(20f, areaMaxHeight);
 
         if (director != null)
         {
