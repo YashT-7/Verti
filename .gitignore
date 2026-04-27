@@ -73,6 +73,10 @@ mono_crash.*
 *.unitypackage.meta
 *.app
 
+# Custom Build Folders
+/[Ww]eb_[Bb]uild/
+*.zip
+
 # Crashlytics generated file
 crashlytics-build.properties
 
