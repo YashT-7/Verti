@@ -36,6 +36,9 @@ public class MapController : MonoBehaviour
     private float divisor = 2.58f;
     private GameObject visualContainer;
 
+    [Header("New Orientation Settings")]
+    public InputField orientationInput; // Drag your new Orientation Input Field here
+
     void Start()
     {
         // 1. Show instructions immediately when the tool starts
@@ -58,6 +61,9 @@ public class MapController : MonoBehaviour
             double.TryParse(lonInput.text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lon))
         {
             SetUIState(false);
+
+            // 1. Rotate the Vertiport BEFORE the scan starts
+            ApplyVertiportRotation();
 
             // 1. Create the coordinate object
             Vector2d center = new Vector2d(lat, lon);
@@ -89,6 +95,30 @@ public class MapController : MonoBehaviour
         }
     }
 
+    private void ApplyVertiportRotation()
+    {
+        if (orientationInput != null && !string.IsNullOrEmpty(orientationInput.text))
+        {
+            if (float.TryParse(orientationInput.text, out float targetAngle))
+            {
+                string selectedName = targetDropdown.options[targetDropdown.value].text;
+                GameObject targetObj = FindHiddenObjectByName(selectedName);
+
+                if (targetObj != null)
+                {
+                    // 1. Get the current rotation in Euler angles
+                    Vector3 currentRotation = targetObj.transform.rotation.eulerAngles;
+
+                    // 2. Apply ONLY the new Y (North-based heading) 
+                    // while keeping the original X and Z
+                    targetObj.transform.rotation = Quaternion.Euler(currentRotation.x, targetAngle, currentRotation.z);
+
+                    Debug.Log($"Rotated {selectedName} to Y:{targetAngle}° (Preserved X:{currentRotation.x} Z:{currentRotation.z})");
+                }
+            }
+        }
+    }
+
     private IEnumerator BufferedCleanupAndScan()
     {
         // 1. Hide the entire UI block immediately
@@ -97,7 +127,7 @@ public class MapController : MonoBehaviour
         // Ensure the restart button is hidden while processing
         if (restartButtonObj != null) restartButtonObj.SetActive(false);
 
-        DrawVisualBoundaries(150f / divisor, 250f / divisor);
+        //DrawVisualBoundaries(150f / divisor, 250f / divisor);
 
         // 2. Wait for Mapbox geometry and physics to fully initialize
         yield return new WaitForSeconds(4f);
@@ -265,7 +295,7 @@ public class MapController : MonoBehaviour
         }
         return highest;
     }
-
+    /*
     private void DrawVisualBoundaries(float rad1, float rad2)
     {
         if (visualContainer != null) Destroy(visualContainer);
@@ -292,5 +322,5 @@ public class MapController : MonoBehaviour
             float angle = i * Mathf.PI * 2 / 49;
             lr.SetPosition(i, new Vector3(Mathf.Cos(angle) * radius, 1.5f, Mathf.Sin(angle) * radius));
         }
-    }
+    }*/
 }
