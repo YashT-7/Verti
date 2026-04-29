@@ -2453,7 +2453,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 114478715909612932, guid: e6b749c6d877f4c19a5a5c3c0783d53b, type: 3}
       propertyPath: _vectorData._layerProperty.vectorSubLayers.Array.data[6].filterOptions.filters.Array.data[0].PropertyValue
-      value: commercial
+      value: house
       objectReference: {fileID: 0}
     - target: {fileID: 114478715909612932, guid: e6b749c6d877f4c19a5a5c3c0783d53b, type: 3}
       propertyPath: _vectorData._layerProperty.vectorSubLayers.Array.data[2].filterOptions.filters.Array.data[0].KeyDescription
@@ -3337,13 +3337,14 @@ GameObject:
   - component: {fileID: 1092733203}
   - component: {fileID: 1092733206}
   - component: {fileID: 1092733202}
+  - component: {fileID: 1092733207}
   m_Layer: 0
   m_Name: Vertiport1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!136 &1092733202
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -3460,6 +3461,26 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.35, y: 10, z: 1.35}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1092733207
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1092733201}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c715f4183ae0a31499194e516cebdac2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::VolocopterPathfinder
+  coneHeight: 100
+  coneAngleDegrees: 30
+  verticalLayers: 10
+  pointsPerLayer: 8
+  distanceWeight: 1
+  noisePenaltyWeight: 50
+  droneBaseDb: 65
+  referenceDistance: 100
 --- !u!1001 &1107473751
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3800,7 +3821,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!136 &1229948453
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -4625,7 +4646,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!136 &1850924056
 CapsuleCollider:
   m_ObjectHideFlags: 0
