@@ -572,7 +572,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VertiportDirector
   targetDropdown: {fileID: 8012796145951240851}
   hoverArrowPrefab: {fileID: 1312509876}
-  hoverHeightRealWorld: 20
+  hoverHeightRealWorld: 100
   safeColor: {r: 0, g: 1, b: 0, a: 1}
   midColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   dangerColor: {r: 1, g: 0, b: 0, a: 1}
@@ -1791,15 +1791,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 73eae7b04bcfe4f36ac72703c09022ce, type: 3}
       propertyPath: m_LocalScale.x
-      value: 20
+      value: 120
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 73eae7b04bcfe4f36ac72703c09022ce, type: 3}
       propertyPath: m_LocalScale.y
-      value: 10
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 73eae7b04bcfe4f36ac72703c09022ce, type: 3}
       propertyPath: m_LocalScale.z
-      value: 5
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 73eae7b04bcfe4f36ac72703c09022ce, type: 3}
       propertyPath: m_LocalPosition.x
