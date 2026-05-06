@@ -214,7 +214,7 @@ public class MapController : MonoBehaviour
     private float ProcessBuildingsWithDynamicVerti()
     {
         float highestPoint = 0f;
-        float scanRadius = 250f / divisor;
+        //float scanRadius = 250f / divisor;
 
         // 1. Get Selected Name from Dropdown
         string selectedName = targetDropdown.options[targetDropdown.value].text;
@@ -230,8 +230,8 @@ public class MapController : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"Target '{selectedName}' not found. Height scan only.");
-            return PerformHeightScanOnly(scanRadius);
+            //Debug.LogWarning($"Target '{selectedName}' not found. Height scan only.");
+            return PerformHeightScanOnly();
         }
 
         BoxCollider[] buildingColliders = GameObject.FindObjectsOfType<BoxCollider>();
@@ -265,12 +265,10 @@ public class MapController : MonoBehaviour
 
                 if (wasRemoved) continue;
 
-                float distance = Vector3.Distance(Vector3.zero, col.bounds.center);
-                if (distance <= scanRadius)
-                {
+               
                     float h = col.bounds.size.y;
                     if (h > highestPoint) highestPoint = h;
-                }
+                
             }
         }
         return highestPoint;
@@ -293,7 +291,7 @@ public class MapController : MonoBehaviour
     }
 
     // Fixed the CS0103 error by providing the missing method
-    private float PerformHeightScanOnly(float radius)
+    private float PerformHeightScanOnly()
     {
         float highest = 0f;
         BoxCollider[] buildingColliders = GameObject.FindObjectsOfType<BoxCollider>();
@@ -302,11 +300,9 @@ public class MapController : MonoBehaviour
             if (col == null) continue;
             if (col.gameObject.name.ToLower().Contains("building") || (col.transform.parent != null && col.transform.parent.name.Contains("/")))
             {
-                float dist = Vector3.Distance(Vector3.zero, col.bounds.center);
-                if (dist <= radius)
-                {
+                
                     if (col.bounds.size.y > highest) highest = col.bounds.size.y;
-                }
+                
             }
         }
         return highest;
