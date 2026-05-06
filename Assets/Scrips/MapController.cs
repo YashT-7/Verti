@@ -14,7 +14,7 @@ public class MapController : MonoBehaviour
     public AbstractMap map;
     public VertiportDirector director;
     public InputField latInput;
-    public InputField lonInput;
+    //public InputField lonInput;
     public Text heightResultText;
 
     [Header("UI Containers")]
@@ -56,34 +56,50 @@ public class MapController : MonoBehaviour
 
     public void OnClickLoadMap()
     {
-        // Use System.Globalization to ensure dots are always treated as decimals
-        if (double.TryParse(latInput.text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lat) &&
-            double.TryParse(lonInput.text, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double lon))
+        // 1. Get the combined string (e.g., "50.11, 8.68")
+        string combinedInput = latInput.text;
+
+        // 2. Split by comma
+        string[] parts = combinedInput.Split(',');
+
+        if (parts.Length == 2)
         {
-            SetUIState(false);
+            // 3. Try to parse both parts using InvariantCulture (for the dots)
+            bool latValid = double.TryParse(parts[0].Trim(), System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out double lat);
+            bool lonValid = double.TryParse(parts[1].Trim(), System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out double lon);
 
-            // 1. Rotate the Vertiport BEFORE the scan starts
-            ApplyVertiportRotation();
+            if (latValid && lonValid)
+            {
+                SetUIState(false);
 
-            // 1. Create the coordinate object
-            Vector2d center = new Vector2d(lat, lon);
+                // Rotate the Vertiport BEFORE the scan starts
+                ApplyVertiportRotation();
 
-            // 2. Set the center via the official method
-            map.SetCenterLatitudeLongitude(center);
+                // Create the coordinate object
+                Vector2d center = new Vector2d(lat, lon);
 
-            // 3. FORCE the string property (this fixes the "Wrong number of arguments" bug)
-            // We use InvariantCulture to ensure it's "12.34, 56.78" and not "12,34, 56,78"
-            map.Options.locationOptions.latitudeLongitude = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}, {1}", lat, lon);
+                // Set the center via the official method
+                map.SetCenterLatitudeLongitude(center);
 
-            // 4. Trigger the visual update
-            map.UpdateMap();
+                // Force the string property for Mapbox
+                map.Options.locationOptions.latitudeLongitude = string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}, {1}", lat, lon);
 
-            StopAllCoroutines();
-            StartCoroutine(BufferedCleanupAndScan());
+                // Trigger the visual update
+                map.UpdateMap();
+
+                StopAllCoroutines();
+                StartCoroutine(BufferedCleanupAndScan());
+            }
+            else
+            {
+                Debug.LogError("Input Parse Failed! Ensure numbers use dots (e.g. 12.34) and are separated by a comma.");
+            }
         }
         else
         {
-            Debug.LogError("Input Parse Failed! Check if you used a comma instead of a dot.");
+            Debug.LogError("Invalid Format! Please enter coordinates as: Latitude, Longitude");
         }
     }
 
@@ -146,7 +162,7 @@ public class MapController : MonoBehaviour
 
                 // ADDED: Latitude and Longitude from the input fields
                 heightResultText.text = $"Area Scan Complete.\n" +
-                                      $"Location: {latInput.text}, {lonInput.text}\n" + // <--- Added this line
+                                      $"Location: {latInput.text}\n" + // <--- Added this line
                                       $"Max Building: {areaMaxHeight:F1}m\n" +
                                       $"Cone Height: {finalConeHeight:F1}m ({heightStatus})";
 
