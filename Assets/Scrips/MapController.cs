@@ -129,7 +129,7 @@ public class MapController : MonoBehaviour
                     // while keeping the original X and Z
                     targetObj.transform.rotation = Quaternion.Euler(currentRotation.x, targetAngle, currentRotation.z);
 
-                    Debug.Log($"Rotated {selectedName} to Y:{targetAngle}° (Preserved X:{currentRotation.x} Z:{currentRotation.z})");
+                    Debug.Log($"Rotated {selectedName} to Y:{targetAngle}ï¿½ (Preserved X:{currentRotation.x} Z:{currentRotation.z})");
                 }
             }
         }
@@ -163,12 +163,12 @@ public class MapController : MonoBehaviour
                 // ADDED: Latitude and Longitude from the input fields
                 heightResultText.text = $"Area Scan Complete.\n" +
                                       $"Location: {latInput.text}\n" + // <--- Added this line
-                                      $"Max Building: {areaMaxHeight:F1}m\n" +
-                                      $"Cone Height: {finalConeHeight:F1}m ({heightStatus})";
+                                      $"Max Building: {areaMaxHeight*divisor:F1}m\n" +
+                                      $"Cone Height: {finalConeHeight*divisor:F1}m ({heightStatus})";
 
                 heightResultText.text += result.isSafeAirspace
-                    ? $"\nPath Clear! Recommended: {result.heading:F1}°"
-                    : $"\nRestricted! Best Path: {result.heading:F1}°";
+                    ? $"\nPath Clear! Recommended: {result.heading:F1}ï¿½"
+                    : $"\nRestricted! Best Path: {result.heading:F1}ï¿½";
 
                 if (coneScript != null)
                 {
