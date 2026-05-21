@@ -45,12 +45,12 @@ public class VertiportDirector : MonoBehaviour
         noiseScanner = GetComponent<NoiseScanner>();
     }
 
-    public void RunDirectionScan(float divisor, Action<FinalRecommendation> onResult)
+    public void RunDirectionScan(float divisor, float clearanceHeight, Action<FinalRecommendation> onResult)
     {
-        StartCoroutine(ScanRoutine(divisor, onResult));
+        StartCoroutine(ScanRoutine(divisor, clearanceHeight, onResult));
     }
 
-    private IEnumerator ScanRoutine(float divisor, Action<FinalRecommendation> onResult)
+    private IEnumerator ScanRoutine(float divisor, float clearanceHeight, Action<FinalRecommendation> onResult)
     {
         yield return new WaitForFixedUpdate();
 
@@ -76,7 +76,7 @@ public class VertiportDirector : MonoBehaviour
         Vector3 scanCenter = originTransform.position;
 
         // 1. PHASE 1: AIRSPACE FILTER
-        List<AirspaceScanner.AirspaceData> airspaceData = airspaceScanner.ScanAirspace(divisor, scanCenter);
+        List<AirspaceScanner.AirspaceData> airspaceData = airspaceScanner.ScanAirspace(divisor, scanCenter, clearanceHeight);
 
         // 2. PHASE 2: FILTERING CANDIDATES
         List<AirspaceScanner.AirspaceData> validCandidates = new List<AirspaceScanner.AirspaceData>();
@@ -100,7 +100,7 @@ public class VertiportDirector : MonoBehaviour
         float bestNoiseScore = float.MaxValue;
         foreach (var candidate in validCandidates)
         {
-            float currentNoiseScore = noiseScanner.EvaluateNoiseImpact(candidate.angle, scanCenter);
+            float currentNoiseScore = noiseScanner.EvaluateNoiseImpact(candidate.angle, scanCenter, divisor);
             if (currentNoiseScore < bestNoiseScore)
             {
                 bestNoiseScore = currentNoiseScore;

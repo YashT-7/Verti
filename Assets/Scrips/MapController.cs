@@ -137,38 +137,29 @@ public class MapController : MonoBehaviour
 
     private IEnumerator BufferedCleanupAndScan()
     {
-        // 1. Hide the entire UI block immediately
         SetUIState(false);
-
-        // Ensure the restart button is hidden while processing
         if (restartButtonObj != null) restartButtonObj.SetActive(false);
 
-        //DrawVisualBoundaries(150f / divisor, 250f / divisor);
-
-        // 2. Wait for Mapbox geometry and physics to fully initialize
         yield return new WaitForSeconds(4f);
 
         float areaMaxHeight = ProcessBuildingsWithDynamicVerti();
-
-        // 3. Apply safety logic: h2 must be at least 20m
-        float finalConeHeight = Mathf.Max(20f, areaMaxHeight);
+        float finalConeHeight = Mathf.Max(20f, areaMaxHeight); // This is your h2
 
         if (director != null)
         {
-            director.RunDirectionScan(divisor, (result) => {
+            // CHANGE: Pass finalConeHeight as the second parameter into RunDirectionScan
+            director.RunDirectionScan(divisor, finalConeHeight, (result) => {
 
-                // UI Update reflecting chosen height and scan findings
                 string heightStatus = areaMaxHeight > 15f ? "Building Restricted" : "Default Minimum";
 
-                // ADDED: Latitude and Longitude from the input fields
                 heightResultText.text = $"Area Scan Complete.\n" +
-                                      $"Location: {latInput.text}\n" + // <--- Added this line
-                                      $"Max Building: {areaMaxHeight*divisor:F1}m\n" +
-                                      $"Cone Height: {finalConeHeight*divisor:F1}m ({heightStatus})";
+                                    $"Location: {latInput.text}\n" + 
+                                    $"Max Building: {areaMaxHeight*divisor:F1}m\n" +
+                                    $"Cone Height: {finalConeHeight*divisor:F1}m ({heightStatus})";
 
                 heightResultText.text += result.isSafeAirspace
-                    ? $"\nPath Clear! Recommended: {result.heading:F1}�"
-                    : $"\nRestricted! Best Path: {result.heading:F1}�";
+                    ? $"\nPath Clear! Recommended: {result.heading:F1}"
+                    : $"\nRestricted! Best Path: {result.heading:F1}";
 
                 if (coneScript != null)
                 {
@@ -192,14 +183,11 @@ public class MapController : MonoBehaviour
                     }
                 }
 
-                // 4. THE KEY CHANGE: Only show the restart button. 
-                // The main UI (SetUIState) stays FALSE so the user can't click Generate again.
                 if (restartButtonObj != null) restartButtonObj.SetActive(true);
             });
         }
         else
         {
-            // If director fails, we show everything so the user can try again
             SetUIState(true);
         }
     }

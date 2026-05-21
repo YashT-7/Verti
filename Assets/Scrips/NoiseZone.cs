@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class NoiseScanner : MonoBehaviour
+public class NoiseZones : MonoBehaviour
 {
     [Header("Acoustic Raycast Settings")]
     [Tooltip("How far out should the drone check for noise zones? (In Unity Units)")]

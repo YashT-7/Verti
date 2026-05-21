@@ -22,7 +22,7 @@ public class AirspaceScanner : MonoBehaviour
     /// <summary>
     /// Performs the 360-degree sweep and returns the safety data for every angle.
     /// </summary>
-    public List<AirspaceData> ScanAirspace(float divisor, Vector3 startPosition)
+    public List<AirspaceData> ScanAirspace(float divisor, Vector3 startPosition, float clearanceHeight)
     {
         List<AirspaceData> results = new List<AirspaceData>();
 
@@ -30,8 +30,8 @@ public class AirspaceScanner : MonoBehaviour
         float halfWidth = (1.5f * dValue / divisor) / 2f;
         Vector3 boxHalfExtents = new Vector3(halfWidth, 5f / divisor, halfWidth); 
         
-        // Start slightly elevated
-        Vector3 startPos = startPosition + (Vector3.up * (0.5f / divisor)); 
+        // CHANGE: Elevate the start position completely above h2 (clearanceHeight)
+        Vector3 startPos = startPosition + (Vector3.up * clearanceHeight); 
 
         for (int angle = 0; angle < 360; angle += scanStepSize) 
         {
@@ -52,7 +52,8 @@ public class AirspaceScanner : MonoBehaviour
                 isClear = !hitSomething
             });
         }
-
         return results;
     }
+    
+
 }
