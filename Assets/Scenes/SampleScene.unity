@@ -7096,8 +7096,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71c83e340390ac54c9428e4329c5a6d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProceduralSafetyCone
-  h1_CylinderHeight: 10
-  topDiameter: 11.63
+  h1_CylinderHeight: 3
   segments: 50
   extensionRadius: 100
   extensionAngle: 5

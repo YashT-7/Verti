@@ -145,11 +145,11 @@ public class MapController : MonoBehaviour
         float areaMaxHeight = ProcessBuildingsWithDynamicVerti();
 
         // --- HEIGHT LIMIT CHANGE ---
-        // Enforce a minimum of 20m and a maximum of 300m for your h2 (final cone height)
-        float minLimit = 80.0f;
+        // Enforce a minimum of 80m and a maximum of 150m for your h2 (final cone height)
+        float minLimit = 15f;
         float maxLimit = 150.0f;
 
-        // Use Mathf.Clamp to automatically bind finalConeHeight between 20 and 300
+        // Use Mathf.Clamp to automatically bind finalConeHeight between 80 and 150
         float finalConeHeight = Mathf.Clamp(areaMaxHeight, minLimit/divisor, maxLimit/divisor);
         // ----------------------------
 

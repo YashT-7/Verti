@@ -5,8 +5,8 @@ using System.Collections.Generic;
 public class ProceduralSafetyCone : MonoBehaviour
 {
     [Header("Dynamic Parameters")]
-    public float h1_CylinderHeight = 75f;  // Base vertical section
-    public float topDiameter = 11.63f;     // Target width
+    public float h1_CylinderHeight = 3f;  // Base vertical section
+    
     public int segments = 60;
 
     [Header("Outer Extension (Brim)")]
