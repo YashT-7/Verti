@@ -464,7 +464,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.05, y: 141.82}
+  m_AnchoredPosition: {x: 0.05, y: 130}
   m_SizeDelta: {x: 293.88, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &50281887
@@ -487,17 +487,16 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Navigation\nZOOM: [Q] to Zoom In, [E] to Zoom Out, or Mouse Scroll.\n\nORBIT:
-    Hold [Right Click] and move mouse to rotate view.\n\nPAN: Hold [SHIFT + Right
-    Click] to move across the map.\n\nHow to Use This Tool\nEnter Coordinates: Type
-    the Latitude and Longitude of your location.\n\nSelect Vertiport: Choose your
-    target FATO from the dropdown menu.\n\nSet Orientation: Enter the Heading (0-360\xB0)
-    to align the vertiport relative to North.\n\nGenerate: Click \"Show OFV\" to
-    begin the automated scan.\n\nSafety Analysis (OFV)\nGreen Rays: Clear flight
-    paths with no building obstructions.\n\nRed Rays / Cutouts: Paths blocked by
-    buildings within the safety volume.\n\nArrow: Optimal heading based on obstacle
-    clearance and noise data.\n\nRestart\nClick the \"Try new location\" button to
-    reset the scene and start a new mission."
+  m_text: "NAVIGATION\nZoom in: [Q] , Zoom out: [E]; or Mouse Scroll.\nOrbit: [Right
+    Click] and move mouse to rotate view.\nPan:  [SHIFT + Right Click] to move across
+    the map.\n\nINSTRUCTIONS \nEnter Coordinates: Type the Latitude and Longitude
+    (lat, lon) of your location.\nSelect Scenario: Choose your target Scenario from
+    the dropdown menu.\nSet Orientation: Enter the Heading relative to north (0-360\xB0)
+    if required.\nGenerate: Click \"Show OFV\" to begin the automated scan.\n\nRADAR
+    FAN RAYS:\nGreen: Clear flight paths with no obstructions.\nYellow: moderately
+    restricted.\nRed: Paths restricted by buildings/airspace.\n\nARROW:\nRecommended
+    heading based on obstacle clearance and noise data.\n\nRESTART\nClick the \"Try
+    new location\" button to reset the scene and start a new mission."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -675,6 +674,7 @@ GameObject:
   - component: {fileID: 199429930}
   - component: {fileID: 199429933}
   - component: {fileID: 199429932}
+  - component: {fileID: 199429934}
   m_Layer: 0
   m_Name: VertiportDirector
   m_TagString: Untagged
@@ -696,7 +696,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::VertiportDirector
   targetDropdown: {fileID: 8012796145951240851}
   hoverArrowPrefab: {fileID: 1312509876}
-  hoverHeightRealWorld: 100
+  hoverHeightRealWorld: 120
   safeColor: {r: 0, g: 1, b: 0, a: 1}
   midColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   dangerColor: {r: 1, g: 0, b: 0, a: 1}
@@ -753,6 +753,23 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   scanStepSize: 5
+--- !u!114 &199429934
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 199429929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc01d50ffd2f14fcb960b6766e49d475, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NoiseScanner
+  referenceNoiseDB: 55
+  referenceDistance: 15
+  atmosphericAbsorption: 0.005
+  evaluationDistance: 2000
+  climbSlope: 0.125
 --- !u!1 &246761646
 GameObject:
   m_ObjectHideFlags: 0
@@ -981,7 +998,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Got it (close)
+  m_text: Got it (X)
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5929,7 +5946,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1312509876}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -9912,7 +9929,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 1
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text: Height Display
+  m_Text: Information Panel
 --- !u!33 &3755534442454681682
 MeshFilter:
   m_ObjectHideFlags: 0

@@ -146,11 +146,11 @@ public class MapController : MonoBehaviour
 
         // --- HEIGHT LIMIT CHANGE ---
         // Enforce a minimum of 20m and a maximum of 300m for your h2 (final cone height)
-        float minLimit = 80.0f/ divisor;
-        float maxLimit = 1980.0f / divisor;
+        float minLimit = 80.0f;
+        float maxLimit = 150.0f;
 
         // Use Mathf.Clamp to automatically bind finalConeHeight between 20 and 300
-        float finalConeHeight = Mathf.Clamp(areaMaxHeight, minLimit, maxLimit);
+        float finalConeHeight = Mathf.Clamp(areaMaxHeight, minLimit/divisor, maxLimit/divisor);
         // ----------------------------
 
         //float finalConeHeight = Mathf.Max(20f, areaMaxHeight); // This is your h2
@@ -163,11 +163,11 @@ public class MapController : MonoBehaviour
                 //string heightStatus = areaMaxHeight > 15f ? "Building Restricted" : "Default Minimum";
                 // Update status text based on if it hit the default minimum, a normal building restriction, or the max cap
                 string heightStatus = "Default Minimum";
-                if (areaMaxHeight >= maxLimit)
+                if (areaMaxHeight*divisor >= maxLimit)
                 {
                     heightStatus = "Max Height Limit";
                 }
-                else if (areaMaxHeight > 15f)
+                else if (areaMaxHeight*divisor > 15f)
                 {
                     heightStatus = "Building Restricted";
                 }
@@ -179,7 +179,7 @@ public class MapController : MonoBehaviour
 
                 heightResultText.text += result.isSafeAirspace
                     ? $"\nPath Clear! Recommended: {result.heading:F1}"
-                    : $"\nRestricted! Best Path: {result.heading:F1}";
+                    : $"\nRestricted! <color=red>No Safe Flight Path Available!</color>";
 
                 if (coneScript != null)
                 {
