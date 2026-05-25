@@ -146,7 +146,7 @@ public class MapController : MonoBehaviour
 
         // --- HEIGHT LIMIT CHANGE ---
         // Enforce a minimum of 80m and a maximum of 150m for your h2 (final cone height)
-        float minLimit = 15f;
+        float minLimit = 30.0f;
         float maxLimit = 150.0f;
 
         // Use Mathf.Clamp to automatically bind finalConeHeight between 80 and 150
