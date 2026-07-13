@@ -2,7 +2,7 @@
 
 An interactive, simulation-driven 3D visualisation and planning tool developed within the Institute of Flight Systems and Automatic Control (FSR) at the Technical University of Darmstadt. This software platform automates the procedural generation of high-fidelity urban digital twins to compute EASA-compliant protected airspace volumes and evaluate flight corridors under strict structural constraints.
 
-![Demonstration Video](./DemonstrationVideo.mp4)
+https://github.com/user-attachments/assets/2bd4161a-277d-4572-9907-776976b2f7ee
 
 ## 🚀 Key System Features
 * **Procedural 3D Environment Generation:** Integrates the Mapbox Unity SDK and OpenStreetMap (OSM) vector data layers to dynamically render metropolitan topology based on real-world coordinates.
